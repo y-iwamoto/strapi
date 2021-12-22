@@ -13,7 +13,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import LeftMenu from '../../components/LeftMenu';
 import AppLayout from '../../layouts/AppLayout';
 import { useMenu, useReleaseNotification } from '../../hooks';
-import Onboarding from './Onboarding';
+import GlobalHelp from './GlobalHelp';
+import OnboardingModal from './OnboardingModal';
+import OnboardingProvider from './OnboardingModal/OnboardingProvider';
 import { createRoute } from '../../utils';
 
 const CM = lazy(() =>
@@ -64,34 +66,37 @@ const Admin = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <AppLayout
-        sideNav={
-          <LeftMenu
-            generalSectionLinks={generalSectionLinks}
-            pluginsSectionLinks={pluginsSectionLinks}
-          />
-        }
-      >
-        <Suspense fallback={<LoadingIndicatorPage />}>
-          <Switch>
-            <Route path="/" component={HomePage} exact />
-            <Route path="/me" component={ProfilePage} exact />
-            <Route path="/content-manager" component={CM} />
-            {routes}
-            <Route path="/settings/:settingId" component={SettingsPage} />
-            <Route path="/settings" component={SettingsPage} exact />
-            <Route path="/marketplace">
-              <MarketplacePage />
-            </Route>
-            <Route path="/list-plugins" exact>
-              <InstalledPluginsPage />
-            </Route>
-            <Route path="/404" component={NotFoundPage} />
-            <Route path="" component={NotFoundPage} />
-          </Switch>
-        </Suspense>
-        <Onboarding />
-      </AppLayout>
+      <OnboardingProvider>
+        <AppLayout
+          sideNav={
+            <LeftMenu
+              generalSectionLinks={generalSectionLinks}
+              pluginsSectionLinks={pluginsSectionLinks}
+            />
+          }
+        >
+          <Suspense fallback={<LoadingIndicatorPage />}>
+            <Switch>
+              <Route path="/" component={HomePage} exact />
+              <Route path="/me" component={ProfilePage} exact />
+              <Route path="/content-manager" component={CM} />
+              {routes}
+              <Route path="/settings/:settingId" component={SettingsPage} />
+              <Route path="/settings" component={SettingsPage} exact />
+              <Route path="/marketplace">
+                <MarketplacePage />
+              </Route>
+              <Route path="/list-plugins" exact>
+                <InstalledPluginsPage />
+              </Route>
+              <Route path="/404" component={NotFoundPage} />
+              <Route path="" component={NotFoundPage} />
+            </Switch>
+          </Suspense>
+          <GlobalHelp />
+          <OnboardingModal />
+        </AppLayout>
+      </OnboardingProvider>
     </DndProvider>
   );
 };
