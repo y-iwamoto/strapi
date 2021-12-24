@@ -10,17 +10,19 @@ const OnboardingProvider = ({ children }) => {
   const initialState = {
     sections: {
       '/content-manager': {
-        pageMatchers: /\/content-manager\/collectionType\/[^/]+\/?$/,
+        name: 'content-manager',
+        pageMatcher: /\/content-manager\/[^/]+\/[^/]+\/?$/,
         done: false,
         steps: {
           1: {
             done: false,
             title: 'init onboarding',
+            selfValidate: true,
           },
-          pause: true,
           2: {
             done: false,
             title: 'success onboarding',
+            selfValidate: true,
           },
         },
       },
@@ -32,7 +34,14 @@ const OnboardingProvider = ({ children }) => {
   const setStepAsComplete = (sectionId, stepId) => {
     setOnboardingState(prev => {
       const newState = cloneDeep(prev);
-      newState.sections[sectionId].steps[stepId].done = true;
+      const section = newState.sections[sectionId];
+      const steps = section.steps;
+      const stepsKeys = Object.keys(steps);
+      section.steps[stepId].done = true;
+
+      newState.sections[sectionId].done = stepsKeys.reduce((acc, cur) => {
+        return acc && steps[cur].done;
+      }, true);
 
       return newState;
     });

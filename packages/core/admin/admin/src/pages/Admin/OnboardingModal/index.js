@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import values from 'lodash/values';
 import {
   ModalLayout,
   ModalBody,
@@ -14,25 +13,64 @@ import OnboardingContext from './OnboardingContext';
 const OnboardingModal = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(null);
+  const [stepKey, setStepKey] = useState(null);
+  const [sectionKey, setSectionKey] = useState(null);
+  const [previousSection, setPreviousSection] = useState(null);
+  const [previousPathname, setPreviousPathname] = useState(null);
   const { onboardingState, setStepAsComplete } = useContext(OnboardingContext);
   const { pathname } = useLocation();
 
   useEffect(() => {
     // Get current section
-    const sections = values(onboardingState.sections);
-    const section = sections.find(section => pathname.match(section.pageMatchers));
+    const currentSectionKey = Object.keys(onboardingState.sections).find(currentSectionKey =>
+      pathname.match(onboardingState.sections[currentSectionKey].pageMatcher)
+    );
 
-    // GUARD: onboarding exists on this page
-    if (!section) {
+    const section = onboardingState.sections[currentSectionKey];
+
+    // Skip the modal if we don't have an onboarding section matchin the current page
+    // && if the previous page section is the same as the current one
+    const shouldSkipModal =
+      !section ||
+      (previousSection && previousSection.name === section.name && previousPathname !== pathname) ||
+      section.done;
+
+    // const shouldSkipModal =
+    // !section
+    // || (previousSection && previousSection.name === section.name && previousPathname !== pathname)
+    // || section.done
+
+    // We need to keep the previous page after testing if we are still on the same section
+    // We need to keep the previous page before rendering or skipping the modal
+    setPreviousSection(section);
+    setPreviousPathname(pathname);
+
+    if (shouldSkipModal) {
+      setIsVisible(false);
+
       return;
     }
 
+    const { steps } = section;
     // Get the curent step
-    const step = values(section.steps).find(step => step.done === false);
+    const currentStepKey = Object.keys(steps).find(key => steps[key].done === false);
+    const step = steps[currentStepKey];
     setCurrentStep(step);
+    setStepKey(currentStepKey);
 
+    setSectionKey(currentSectionKey);
     setIsVisible(true);
-  }, [pathname, onboardingState]);
+  }, [pathname, onboardingState, previousSection, previousPathname]);
+
+  // useEffect(() => {console.log('yooooooolooooooooo')}, [onboardingState])
+
+  const handleEndActionClick = () => {
+    if (currentStep && currentStep.selfValidate) {
+      setStepAsComplete(sectionKey, stepKey);
+    } else {
+      setIsVisible(prev => !prev);
+    }
+  };
 
   return (
     <>
@@ -44,9 +82,7 @@ const OnboardingModal = () => {
             </Typography>
           </ModalHeader>
           <ModalBody>hello world</ModalBody>
-          <ModalFooter
-            endActions={<Button onClick={() => setIsVisible(prev => !prev)}>click me</Button>}
-          />
+          <ModalFooter endActions={<Button onClick={handleEndActionClick}>click me</Button>} />
         </ModalLayout>
       )}
     </>
