@@ -25,7 +25,7 @@ module.exports = {
             {
               Key: `${path}${file.hash}${file.ext}`,
               Body: Buffer.from(file.buffer, 'binary'),
-              ACL: 'public-read',
+              //ACL: 'public-read',
               ContentType: file.mime,
               ...customParams,
             },
@@ -35,7 +35,7 @@ module.exports = {
               }
 
               // set the bucket file url
-              file.url = data.Location;
+              file.url = S3.config.cdnUrl + data.Key
 
               resolve();
             }
